@@ -3,7 +3,7 @@
 
 An Elixir / Nif cache for geolocation addresses
 
-geolocation data are stored in a Kd-tree see
+geolocation data are stored in a Kd-tree.
 
 ## Example
   iex> 
