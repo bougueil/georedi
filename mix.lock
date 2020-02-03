@@ -1,0 +1,12 @@
+%{
+  "bear": {:hex, :bear, "0.8.7", "16264309ae5d005d03718a5c82641fcc259c9e8f09adeb6fd79ca4271168656f", [:rebar3], [], "hexpm"},
+  "bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm"},
+  "credo": {:hex, :credo, "1.1.5", "caec7a3cadd2e58609d7ee25b3931b129e739e070539ad1a0cd7efeeb47014f4", [:mix], [{:bunt, "~> 0.2.0", [hex: :bunt, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm"},
+  "exometer_core": {:hex, :exometer_core, "1.5.7", "ab97e34a5d69ab14e6ae161db4cca5b5e655e635b842f830ee6ab2cbfcfdc30a", [:rebar3], [{:folsom, "0.8.7", [hex: :folsom, repo: "hexpm", optional: false]}, {:hut, "1.2.1", [hex: :hut, repo: "hexpm", optional: false]}, {:parse_trans, "3.3.0", [hex: :parse_trans, repo: "hexpm", optional: false]}, {:setup, "2.0.2", [hex: :setup, repo: "hexpm", optional: false]}], "hexpm"},
+  "folsom": {:hex, :folsom, "0.8.7", "a885f0aeee4c84270954c88a55a5a473d6b2c7493e32ffdc5765412dd555a951", [:rebar3], [{:bear, "0.8.7", [hex: :bear, repo: "hexpm", optional: false]}], "hexpm"},
+  "hut": {:hex, :hut, "1.2.1", "08d46679523043424870723923971889e8a34d63b2f946a35b46cf921d1236e7", [:"erlang.mk", :rebar, :rebar3], [], "hexpm"},
+  "jason": {:hex, :jason, "1.1.2", "b03dedea67a99223a2eaf9f1264ce37154564de899fd3d8b9a21b1a6fd64afe7", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm"},
+  "parse_trans": {:hex, :parse_trans, "3.3.0", "09765507a3c7590a784615cfd421d101aec25098d50b89d7aa1d66646bc571c1", [:rebar3], [], "hexpm"},
+  "redi": {:git, "git://github.com/bougueil/erlang-redi", "1fc3be007dd1f43e0a3ff203948cb729e21c8563", []},
+  "setup": {:hex, :setup, "2.0.2", "1203f4cda11306c2e34434244576ded0a7bbfb0908d9a572356c809bd0cdf085", [:rebar3], [], "hexpm"},
+}
