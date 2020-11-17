@@ -16,8 +16,16 @@ geolocation data are stored in a Kd-tree.
 
 
 ## Installation
-
 ```elixir
+def application do
+  [
+    extra_applications: [
+	..
+	:georedi
+    ]
+  ]
+end
+
 def deps do
   [
     {:georedi, "~> 0.1.0"}
