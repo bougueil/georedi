@@ -92,7 +92,7 @@ defmodule GeoRedi do
 
   @mult 11_930_464
   @doc false
-  def scale_31(angle), do: trunc(angle * @mult)
+  def scale_31(angle), do: round(angle * @mult)
 
   # returns the {lat, lng} of an address
   # for debug purpose
