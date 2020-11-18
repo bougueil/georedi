@@ -57,11 +57,9 @@ defmodule GeoRedi do
 
 
       iex> GeoRedi.get_addr(49.496146587, 0.12258659, fn _,_ -> "undefined" end, "undefined")
-      {"66, Rue Lesueur, Danton, 76600, Le Havre, Le Havre, France", 160000, 20.0}
+      "66, Rue Lesueur, Danton, 76600, Le Havre, Le Havre, France"
 
-  returns the best_distance found (160000) whose purpose is to be compared to the configuration parameter `:nearest_dist_max`,w
-
-  20 is the time in microseconds to compute the nearest_address.
+  returns the nearest_address.
 
   """
 
@@ -70,11 +68,11 @@ defmodule GeoRedi do
   @spec get_addr(latitude :: float(), longitude :: float(), fallback_fn :: function(), fallback_not_found :: binary() | term()) :: tuple() | binary() | term()
   def get_addr(lat, lng, fallback, fallback_not_found)
       when is_float(lat) and is_float(lng) and is_function(fallback, 2) do
-    now = System.system_time(:microsecond)
+    now = System.system_time()
 
     case Nif.nearest(scale_31(lat), scale_31(lng)) do
       {addr, dist, _time} when dist < @nearest_dist_max ->
-        :exometer.update([:duration_us, :read_cache], System.system_time(:microsecond) - now)
+        :exometer.update([:duration_us, :read_cache], System.system_time() - now)
         # Logger.info("{found_cache, #{lat},#{lng},#{dist},#{addr}")
         addr
 

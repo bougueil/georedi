@@ -16,19 +16,19 @@ defmodule GeoRedi.Worker do
 
   @spec add_entry(float(), float(), function(), binary() | term()) :: binary()
   def add_entry(lat, lng, fallback, fallback_not_found) do
-    now = System.system_time(:microsecond)
+    now = System.system_time()
 
     case fallback.(lat, lng) do
       ^fallback_not_found ->
-        :exometer.update([:duration_us, :fallback_get], System.system_time(:microsecond) - now)
+        :exometer.update([:duration_us, :fallback_get], System.system_time() - now)
         fallback_not_found
 
       addr ->
-        :exometer.update([:duration_us, :fallback_get], System.system_time(:microsecond) - now)
-        now = System.system_time(:microsecond)
+        :exometer.update([:duration_us, :fallback_get], System.system_time() - now)
+        now = System.system_time()
         insert_latlng(addr, GeoRedi.scale_31(lat), GeoRedi.scale_31(lng))
 
-        :exometer.update([:duration_us, :write_cache], System.system_time(:microsecond) - now)
+        :exometer.update([:duration_us, :write_cache], System.system_time() - now)
         addr
     end
   end
@@ -88,13 +88,13 @@ defmodule GeoRedi.Worker do
   @impl true
   def handle_info(:refresh_live_cache = msg, state) do
     restart_timer(@refresh_live_cache_ms, msg)
-    now = System.system_time(:microsecond)
+    now = System.system_time()
 
     num_entries =
       :ets.tab2list(:latlng)
       |> Nif.new_tree()
 
-    :exometer.update([:duration_us, :build_cache], System.system_time(:microsecond) - now)
+    :exometer.update([:duration_us, :build_cache], System.system_time() - now)
     Logger.info("#{msg} cache #{num_entries} entries")
 
     {:noreply, state}
