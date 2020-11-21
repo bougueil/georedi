@@ -19,7 +19,7 @@ defmodule GeoRedi.MixProject do
 
       # Docs
       name: "GeoRedi",
-      source_url: "https://github.com/USER/PROJECT",
+      source_url: "https://github.com/bougueil/georedis",
       docs: [
         main: "GeoRedi",
         # logo: "path/to/logo.png",
