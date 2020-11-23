@@ -14,7 +14,7 @@ defmodule GeoRedi do
   Internally, if no address is found with an acceptable best_distance, see configurable parameter `:nearest_dist_max`, the `fallback` fun is called with latitude, longitude and returns either `fallback_not_found` or an address that GeoRedi adds it to the cache.
 
   The cached addresses will be discarted after the configurable `:clean_ets_addr_after_ms` parameter, enabling some 'data refreshing' or limiting the cache from being too large.
-  
+
 
   The cache lookup time is O(log n) thanks to the K-d tree.
 
@@ -28,7 +28,7 @@ defmodule GeoRedi do
 
   returns 160000 as the best_distance found and  20 microseconds to find the address.
 
- ## Configuration
+  ## Configuration
 
 
   - `:refresh_live_cache_ms` - update cache in ms, default is 1 minute, 
@@ -65,7 +65,12 @@ defmodule GeoRedi do
 
   @nearest_dist_max Application.get_env(:geo_redi, :nearest_dist_max) || 6000 * 6000
 
-  @spec get_addr(latitude :: float(), longitude :: float(), fallback_fn :: function(), fallback_not_found :: binary() | term()) :: tuple() | binary() | term()
+  @spec get_addr(
+          latitude :: float(),
+          longitude :: float(),
+          fallback_fn :: function(),
+          fallback_not_found :: binary() | term()
+        ) :: tuple() | binary() | term()
   def get_addr(lat, lng, fallback, fallback_not_found)
       when is_float(lat) and is_float(lng) and is_function(fallback, 2) do
     now = System.system_time()
