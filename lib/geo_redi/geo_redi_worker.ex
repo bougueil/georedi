@@ -41,13 +41,14 @@ defmodule GeoRedi.Worker do
   @impl true
   def init(_) do
     :ets.new(:addr, [:set, :named_table])
+    GeoRedi.Backup.restore_from_disk()
     :redi.gc_client(:latlng, self(), %{returns: :key_value})
     restart_timer(@refresh_live_cache_ms, :refresh_live_cache)
     restart_timer(@clean_ets_addr_after_ms, :refresh_ets_addr)
     Logger.info("#{inspect(self())} init/1 with :  \
     \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms} \
     \n\t@clean_ets_addr_after_ms #{@clean_ets_addr_after_ms}")
-      
+
     {:ok, %{tree: nil}}
   end
 
@@ -73,6 +74,11 @@ defmodule GeoRedi.Worker do
     GenServer.call(__MODULE__, {:insert_addr, kv})
   end
 
+  def insert_bulk_addr({addr, latlng}) do
+    if is_tuple(latlng), do: :redi.set_bulk(:latlng, latlng, addr)
+    :ets.insert(:addr, {addr, {latlng, ts_ms()}})
+  end
+
   @impl true
   def handle_call({:insert_addr, {addr, latlng}}, _from, state) do
     :ets.insert(:addr, {addr, {latlng, ts_ms()}})
@@ -86,6 +92,9 @@ defmodule GeoRedi.Worker do
   end
 
   @impl true
+  @doc """
+  Handle the Redi's GC of old keys
+  """
   def handle_info(:refresh_live_cache = msg, state) do
     restart_timer(@refresh_live_cache_ms, msg)
     now = System.system_time()
