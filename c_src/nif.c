@@ -7,6 +7,7 @@
 
 #define MAX_DIM 2
 #define CACHE_MAX_SZ  1000000
+/* #define DEBUG_OUTPUT */
 
 /* Based on kd-tree implementation : 
    https://rosettacode.org/wiki/K-d_tree#C 
@@ -88,9 +89,13 @@ debug_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   
   if(b >= NODES_ARRAY_LEN) b = NODES_ARRAY_LEN -1;
 
+#ifdef DEBUG_OUTPUT
   for(i =0; i < b && NODES_ARRAY; i++) {
-    enif_fprintf(DEBUG_FILE, "\tnode %d %p -> {%ld, %ld, \"%s\"}\n",  i, &NODES_ARRAY[i], (long int)trunc(NODES_ARRAY[i].x[0]), (long int)trunc(NODES_ARRAY[i].x[1]),NODES_ARRAY[i].data);
+    enif_fprintf(DEBUG_FILE, "\tnode %d %p -> {%ld, %ld, \"%s\"}\n",
+		 i, &NODES_ARRAY[i], (long int)trunc(NODES_ARRAY[i].x[0]), (long int)trunc(NODES_ARRAY[i].x[1]),NODES_ARRAY[i].data);
   }
+#endif
+
   return enif_make_int(env, NODES_ARRAY_LEN);
  
 }
@@ -105,10 +110,12 @@ debug2_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   if(b >= NODES_ARRAY_LEN) b = NODES_ARRAY_LEN -1;
   if(a >= NODES_ARRAY_LEN) a = NODES_ARRAY_LEN -1;
 
+#ifdef DEBUG_OUTPUT
   for(i =a; i <= b && NODES_ARRAY; i++) {
-    enif_fprintf(DEBUG_FILE, "\tnode %d %p -> {%ld, %ld, \"%s\"}\n",  i, &NODES_ARRAY[i], NODES_ARRAY[i].x[0], NODES_ARRAY[i].x[1],NODES_ARRAY[i].data);
+    enif_fprintf(DEBUG_FILE, "\tnode %d %p -> {%ld, %ld, \"%s\"}\n",
+		 i, &NODES_ARRAY[i], NODES_ARRAY[i].x[0], NODES_ARRAY[i].x[1],NODES_ARRAY[i].data);
   }
- 
+#endif
 
   return enif_make_int(env, NODES_ARRAY_LEN);
  
@@ -128,10 +135,15 @@ new_tree(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   
    if (!NODES_ARRAY) {
      NODES_ARRAY =(struct kd_node_t*) calloc(CACHE_MAX_SZ, sizeof(struct kd_node_t));
+
+#ifdef DEBUG_OUTPUT
      DEBUG_FILE = fopen("/tmp/geo_outputs.txt", "w");
      setbuf(DEBUG_FILE, NULL);	
+#endif
      rwlock =  enif_rwlock_create((char *)"sauber");
+#ifdef DEBUG_OUTPUT
      enif_fprintf(DEBUG_FILE, ">> CALLOC %d ENTRIES at %p\n", CACHE_MAX_SZ, NODES_ARRAY);
+#endif
    }
 
    enif_rwlock_rwlock(rwlock);
@@ -172,8 +184,11 @@ new_tree(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   
   THE_ROOT = make_tree(NODES_ARRAY, current, 0, 2);
   enif_rwlock_rwunlock(rwlock);
+
+#ifdef DEBUG_OUTPUT
   enif_fprintf(DEBUG_FILE, ">> %d entries for NEW ROOT {%ld, %ld, %s} \n", current, THE_ROOT->x[0], THE_ROOT->x[1], THE_ROOT->data);
- 
+#endif
+
   return enif_make_int(env, NODES_ARRAY_LEN);
 
 }
