@@ -6,6 +6,7 @@ defmodule GeoRedi.Application do
   use Application
 
   def start(_type, _args) do
+    declare_exometer_durations()
     declare_exometer_counters()
 
     children = [
@@ -28,16 +29,35 @@ defmodule GeoRedi.Application do
   end
 
   defp declare_exometer_counters() do
-    Enum.each(histograms(), fn name ->
+    for {name, slot_period} <- exom_counters() do
+      :ok =
+        :exometer.new(name, :spiral, [
+          {:time_span, :timer.seconds(slot_period * 120)},
+          {:slot_period, :timer.seconds(slot_period)}
+        ])
+    end
+  end
+
+  defp declare_exometer_durations() do
+    for name <- exom_durations() do
       :ok =
         :exometer.new(name, :histogram, [
           {:time_span, :timer.seconds(120)},
           {:slot_period, :timer.seconds(1)}
         ])
-    end)
+    end
   end
 
-  defp histograms() do
+  defp exom_counters() do
+    [
+      {[:hit, :fallback_10mn], 10},
+      {[:hit, :cache_10mn], 10},
+      {[:hit, :fallback_1day], div(24*3600, 120)},
+      {[:hit, :cache_1day], div(24 * 3600, 120)}
+    ]
+  end
+
+  defp exom_durations() do
     [
       [:duration_us, :fallback_get],
       [:duration_us, :build_cache],
@@ -50,12 +70,14 @@ defmodule GeoRedi.Application do
   returns some stats 
   """
   def stats() do
-    read_cache = elem(hd(:exometer.get_values([:duration_us, :read_cache])), 1)[:n]
-    fallback_get = elem(hd(:exometer.get_values([:duration_us, :fallback_get])), 1)[:n]
-
-    {for name <- histograms() do
-       :exometer.get_values(name)
-     end,
-     ratio_cache: read_cache * 100 / (read_cache + fallback_get), size: :ets.info(:latlng, :size)}
+    hit_cache = elem(hd(:exometer.get_values([:hit, :cache])), 1)[:n]
+    hit_fallback = elem(hd(:exometer.get_values([:hit, :fallback])), 1)[:n]
+    durations = for name <- exom_durations(), do: :exometer.get_values(name)
+    [
+      durations: durations,
+      ratio_cache: hit_cache * 100 / hit_fallback,
+      size_latlng: :ets.info(:latlng, :size),
+      size_addr: :ets.info(:addr, :size)
+    ]
   end
 end

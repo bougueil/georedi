@@ -6,13 +6,13 @@ An Elixir / Nif cache for geolocation addresses.
 geolocation data are stored in a Kd-tree.
 
 ## Example      
-      iex> latitude = 49.496146587425265; longitude = 0.12258659847596874
+      iex> lat = 49.496146587425265; lng = 0.12258659847596874
       0.12258659847596874
       
-      iex> nominatim_fn = fn lat, lng -> nominatim(lat,lng) end  # fallback callback
+      iex> callback_fn = fn lat, lng -> Process.sleep(500); "ADDR_#{lat}_#{lng}" end
       
-      iex> GeoRedi.get_addr(latitude, longitude, nominatim_fn, "undefined")
-      "66, Rue Lesueur, Danton, 76600, Le Havre, Le Havre, France"}
+      iex> GeoRedi.get_addr(lat, lng, callback_fn, "undefined")
+      "ADDR_49.496146587425265_0.12258659847596874"
 
 
 ## Installation
