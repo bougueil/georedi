@@ -70,14 +70,23 @@ defmodule GeoRedi.Application do
   returns some stats 
   """
   def stats() do
-    hit_cache = elem(hd(:exometer.get_values([:hit, :cache])), 1)[:n]
-    hit_fallback = elem(hd(:exometer.get_values([:hit, :fallback])), 1)[:n]
+    [{_, [_, one: hit_cache_1day]}] = :exometer.get_values([:hit, :cache_1day])
+    [{_, [_, one: hit_fallback_1day]}] = :exometer.get_values([:hit, :fallback_1day])
+    [{_, [_, one: hit_cache_10mn]}] = :exometer.get_values([:hit, :cache_10mn])
+    [{_, [_, one: hit_fallback_10mn]}] = :exometer.get_values([:hit, :fallback_10mn])
     durations = for name <- exom_durations(), do: :exometer.get_values(name)
     [
       durations: durations,
-      ratio_cache: hit_cache * 100 / hit_fallback,
+      hit_cache_1day: hit_cache_1day,
+      hit_cache_10mn: hit_cache_10mn,
+      hit_fallback_1day: hit_fallback_1day,
+      hit_fallback_10mn: hit_fallback_10mn,
+      ratio_cache_1day: safe_percent(hit_cache_1day, hit_fallback_1day + hit_cache_1day),
+      ratio_cache_10mn: safe_percent(hit_cache_10mn, hit_fallback_10mn + hit_cache_10mn),
       size_latlng: :ets.info(:latlng, :size),
       size_addr: :ets.info(:addr, :size)
     ]
   end
+  defp safe_percent(val, divisor) when divisor != 0, do: val * 100 / divisor
+  defp safe_percent(_val, _divisor),  do: 0.0
 end

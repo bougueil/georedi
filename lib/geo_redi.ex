@@ -78,11 +78,13 @@ defmodule GeoRedi do
     case Nif.nearest(scale_31(lat), scale_31(lng)) do
       {addr, dist, _time} when dist < @nearest_dist_max ->
         :exometer.update([:duration_us, :read_cache], System.system_time() - now)
-	:exometer.update([:hit, :cache], 1)
+	:exometer.update([:hit, :cache_1day], 1)
+	:exometer.update([:hit, :cache_10mn], 1)
         # Logger.info("{found_cache, #{lat},#{lng},#{dist},#{addr}")
         addr
       _ ->
-	:exometer.update([:hit, :fallback], 1)
+	:exometer.update([:hit, :fallback_1day], 1)
+	:exometer.update([:hit, :fallback_10mn], 1)
         GeoRedi.Worker.add_entry(lat, lng, fallback, fallback_not_found)
     end
   end
