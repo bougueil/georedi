@@ -43,8 +43,7 @@ defmodule GeoRedi.Worker do
     :redi.gc_client(:latlng, self(), %{returns: :key_value})
     restart_timer(@refresh_live_cache_ms, :refresh_live_cache)
     Logger.info("#{inspect(self())} init/1 with :  \
-    \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms} \
-    \n\t@clean_ets_addr_after_ms #{@clean_ets_addr_after_ms}")
+    \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms}")
 
     {:ok, %{tree: nil}}
   end
