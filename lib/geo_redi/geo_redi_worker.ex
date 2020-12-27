@@ -121,7 +121,7 @@ defmodule GeoRedi.Worker do
 
     num_cleaned =
       :ets.select_delete(:addr, [
-        {{:"$1", {:"$2", :"$3"}}, [{:andalso, {:is_list, :"$2"}, {:>, :"$3", t_gc_ms}}], [true]}
+        {{:"$1", {:"$2", :"$3"}}, [{:andalso, {:is_list, :"$2"}, {:<, :"$3", t_gc_ms}}], [true]}
       ])
     :exometer.update([:duration_us, :remove_old_addr], System.system_time() - now)
 
