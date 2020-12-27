@@ -8,10 +8,12 @@ defmodule GeoRedi.Worker do
   @doc """
   returns the fallback addr or fallback_not_found term as given in parameter
   """
+  @clean_addr_after_ms Application.get_env(:geo_redi, :clean_addr_after_ms) ||
+                             :timer.hours(24 * 10)
 
   @refresh_live_cache_ms Application.get_env(:geo_redi, :refresh_live_cache_ms) ||
                            :timer.minutes(1)
-  @clean_old_addr_after_ms :timer.hours(1)
+  @clean_old_addr_every_ms :timer.hours(1)
 
   @spec add_entry(float(), float(), function(), binary() | term()) :: binary()
   def add_entry(lat, lng, fallback, fallback_not_found) do
@@ -43,10 +45,13 @@ defmodule GeoRedi.Worker do
     GeoRedi.Backup.restore_from_disk()
     :redi.gc_client(:latlng, self(), %{returns: :key_value})
     restart_timer(@refresh_live_cache_ms, :refresh_live_cache)
-    restart_timer(@clean_old_addr_after_ms, :clean_old_addr)
-    Logger.info("#{inspect(self())} init/1 with :  \
+    restart_timer(@clean_old_addr_every_ms, :clean_old_addr)
+    Logger.info """
+    #{inspect(self())} init/1 with :  \
     \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms} \
-    \n\t@clean_addr_after_ms #{@clean_old_addr_after_ms}")
+    \n\t@clean_addr_after_ms #{@clean_addr_after_ms} \
+    \n\t@clean_old_addr_every_ms eve#{@clean_old_addr_every_ms}
+    """
 
     {:ok, %{tree: nil}}
   end
@@ -110,8 +115,8 @@ defmodule GeoRedi.Worker do
 
   # Time to clean oldest addresses that couldn't be used by kd tree
   def handle_info(:clean_old_addr = msg, state) do
-    restart_timer(@clean_old_addr_after_ms, msg)
-    t_gc_ms = ts_ms() - @clean_old_addr_after_ms
+    restart_timer(@clean_old_addr_every_ms, msg)
+    t_gc_ms = ts_ms() - @clean_addr_after_ms
     now = System.system_time()
 
     num_cleaned =
@@ -120,7 +125,7 @@ defmodule GeoRedi.Worker do
       ])
     :exometer.update([:duration_us, :remove_old_addr], System.system_time() - now)
 
-    Logger.info("#{msg} entries cleaned: #{num_cleaned}")
+    Logger.error("#{msg} #{num_cleaned} old addresses hard removed in #{inspect(System.system_time() - now)} us.")
     {:noreply, state}
   end
 
