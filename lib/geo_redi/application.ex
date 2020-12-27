@@ -4,8 +4,8 @@ defmodule GeoRedi.Application do
   @moduledoc false
 
   use Application
-  @clean_ets_addr_after_ms Application.get_env(:geo_redi, :clean_ets_addr_after_ms) ||
-                             :timer.hours(24 * 14)
+  @clean_addr_after_ms Application.get_env(:geo_redi, :clean_addr_after_ms) ||
+                             :timer.hours(24 * 10)
 
   def start(_type, _args) do
     declare_exometer_durations()
@@ -18,7 +18,7 @@ defmodule GeoRedi.Application do
           {:redi, :start_link,
            [
              :latlng,
-             %{bucket_name: :latlng, entry_ttl_ms: @clean_ets_addr_after_ms}
+             %{bucket_name: :latlng, entry_ttl_ms: @clean_addr_after_ms}
            ]}
       },
       {GeoRedi.Worker, []}
@@ -63,6 +63,7 @@ defmodule GeoRedi.Application do
     [
       [:duration_us, :fallback_get],
       [:duration_us, :build_cache],
+      [:duration_us, :remove_old_addr],
       [:duration_us, :read_cache],
       [:duration_us, :write_cache]
     ]

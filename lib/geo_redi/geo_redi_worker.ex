@@ -11,6 +11,7 @@ defmodule GeoRedi.Worker do
 
   @refresh_live_cache_ms Application.get_env(:geo_redi, :refresh_live_cache_ms) ||
                            :timer.minutes(1)
+  @clean_old_addr_after_ms :timer.hours(1)
 
   @spec add_entry(float(), float(), function(), binary() | term()) :: binary()
   def add_entry(lat, lng, fallback, fallback_not_found) do
@@ -42,8 +43,10 @@ defmodule GeoRedi.Worker do
     GeoRedi.Backup.restore_from_disk()
     :redi.gc_client(:latlng, self(), %{returns: :key_value})
     restart_timer(@refresh_live_cache_ms, :refresh_live_cache)
+    restart_timer(@clean_old_addr_after_ms, :clean_old_addr)
     Logger.info("#{inspect(self())} init/1 with :  \
-    \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms}")
+    \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms} \
+    \n\t@clean_addr_after_ms #{@clean_old_addr_after_ms}")
 
     {:ok, %{tree: nil}}
   end
@@ -89,7 +92,7 @@ defmodule GeoRedi.Worker do
 
   @impl true
   @doc """
-  Time to re-actualize the kd tree with the freshest lats/lngs
+  Time to re-actualize the kd tree with freshest lats/lngs
   """
   def handle_info(:refresh_live_cache = msg, state) do
     restart_timer(@refresh_live_cache_ms, msg)
@@ -102,6 +105,22 @@ defmodule GeoRedi.Worker do
     :exometer.update([:duration_us, :build_cache], System.system_time() - now)
     Logger.info("#{msg} cache #{num_entries} entries")
 
+    {:noreply, state}
+  end
+
+  # Time to clean oldest addresses that couldn't be used by kd tree
+  def handle_info(:clean_old_addr = msg, state) do
+    restart_timer(@clean_old_addr_after_ms, msg)
+    t_gc_ms = ts_ms() - @clean_old_addr_after_ms
+    now = System.system_time()
+
+    num_cleaned =
+      :ets.select_delete(:addr, [
+        {{:"$1", {:"$2", :"$3"}}, [{:andalso, {:is_list, :"$2"}, {:>, :"$3", t_gc_ms}}], [true]}
+      ])
+    :exometer.update([:duration_us, :remove_old_addr], System.system_time() - now)
+
+    Logger.info("#{msg} entries cleaned: #{num_cleaned}")
     {:noreply, state}
   end
 
