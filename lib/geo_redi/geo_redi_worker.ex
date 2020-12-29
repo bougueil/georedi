@@ -59,7 +59,7 @@ defmodule GeoRedi.Worker do
   defp insert_latlng(addr, lat, lng) do
     case :ets.lookup(:addr, addr) do
       [{_, {[{la1, ln1}, {la2, ln2} | _], _ts}}] ->
-        latlngs = {trunc((la1 + la2 + lat) / 3), trunc((ln1 + ln2 + lng) / 3)}
+        latlngs = {round((la1 + la2 + lat) / 3), round((ln1 + ln2 + lng) / 3)}
         insert_addr({addr, latlngs})
 
       [{_, {{_lat, _lng}, _ts}}] ->
