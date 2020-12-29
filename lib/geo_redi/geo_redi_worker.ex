@@ -75,7 +75,7 @@ defmodule GeoRedi.Worker do
 
   defp insert_addr(kv = {addr, latlng}) do
     if is_tuple(latlng), do: :redi.set(:latlng, latlng, addr)
-    GenServer.call(__MODULE__, {:insert_addr, kv})
+    GenServer.cast(__MODULE__, {:insert_addr, kv})
   end
 
   def insert_bulk_addr({addr, latlng}) do
@@ -87,6 +87,12 @@ defmodule GeoRedi.Worker do
   def handle_call({:insert_addr, {addr, latlng}}, _from, state) do
     :ets.insert(:addr, {addr, {latlng, ts_ms()}})
     {:reply, :ok, state}
+  end
+
+    @impl true
+  def handle_cast({:insert_addr, {addr, latlng}}, state) do
+    :ets.insert(:addr, {addr, {latlng, ts_ms()}})
+    {:noreply, state}
   end
 
   @impl true
@@ -117,15 +123,15 @@ defmodule GeoRedi.Worker do
   def handle_info(:clean_old_addr = msg, state) do
     restart_timer(@clean_old_addr_every_ms, msg)
     t_gc_ms = ts_ms() - @clean_addr_after_ms
+    ets_size = :ets.info :addr, :size
     now = System.system_time()
-
     num_cleaned =
       :ets.select_delete(:addr, [
         {{:"$1", {:"$2", :"$3"}}, [{:andalso, {:is_list, :"$2"}, {:<, :"$3", t_gc_ms}}], [true]}
       ])
     :exometer.update([:duration_us, :remove_old_addr], System.system_time() - now)
 
-    Logger.error("#{msg} #{num_cleaned} old addresses hard removed in #{inspect(System.system_time() - now)} us.")
+    Logger.error("#{msg} #{num_cleaned}/#{ets_size} old addresses hard removed in #{div(System.system_time() - now, 1000_000)} ms.")
     {:noreply, state}
   end
 
@@ -143,5 +149,5 @@ defmodule GeoRedi.Worker do
     Process.send_after(self(), msg, time)
   end
 
-  defp ts_ms(), do: :erlang.system_time(:milli_seconds)
+  defp ts_ms(), do: System.system_time(:milli_seconds)
 end
