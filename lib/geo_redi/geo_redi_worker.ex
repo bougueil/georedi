@@ -13,7 +13,8 @@ defmodule GeoRedi.Worker do
 
   @refresh_live_cache_ms Application.get_env(:geo_redi, :refresh_live_cache_ms) ||
                            :timer.minutes(1)
-  @clean_old_addr_every_ms :timer.hours(1)
+  @clean_orphan_addr_every_ms :timer.hours(1)
+  @age_orphan_addr_ms :timer.hours(24)
 
   @spec add_entry(float(), float(), function(), binary() | term()) :: binary()
   def add_entry(lat, lng, fallback, fallback_not_found) do
@@ -45,12 +46,12 @@ defmodule GeoRedi.Worker do
     GeoRedi.Backup.restore_from_disk()
     :redi.gc_client(:latlng, self(), %{returns: :key_value})
     restart_timer(@refresh_live_cache_ms, :refresh_live_cache)
-    restart_timer(@clean_old_addr_every_ms, :clean_old_addr)
+    restart_timer(@clean_orphan_addr_every_ms, :clean_orphan_addr)
     Logger.info """
     #{inspect(self())} init/1 with :  \
     \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms} \
     \n\t@clean_addr_after_ms #{@clean_addr_after_ms} \
-    \n\t@clean_old_addr_every_ms eve#{@clean_old_addr_every_ms}
+    \n\t@clean_orphan_addr_every_ms eve#{@clean_orphan_addr_every_ms}
     """
 
     {:ok, %{tree: nil}}
@@ -120,9 +121,9 @@ defmodule GeoRedi.Worker do
   end
 
   # Time to clean oldest addresses that couldn't be used by kd tree
-  def handle_info(:clean_old_addr = msg, state) do
-    restart_timer(@clean_old_addr_every_ms, msg)
-    t_gc_ms = ts_ms() - @clean_addr_after_ms
+  def handle_info(:clean_orphan_addr = msg, state) do
+    restart_timer(@clean_orphan_addr_every_ms, msg)
+    t_gc_ms = ts_ms() - @age_orphan_addr_ms
     ets_size = :ets.info :addr, :size
     now = System.system_time()
     num_cleaned =
