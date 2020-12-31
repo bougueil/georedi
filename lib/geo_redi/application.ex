@@ -4,8 +4,7 @@ defmodule GeoRedi.Application do
   @moduledoc false
 
   use Application
-  @clean_addr_after_ms Application.get_env(:geo_redi, :clean_addr_after_ms) ||
-                             :timer.hours(24 * 10)
+  use GeoRedi.Constants
 
   def start(_type, _args) do
     declare_exometer_durations()

@@ -1,21 +1,22 @@
 defmodule GeoRedi.Worker do
   use GenServer
+  use GeoRedi.Constants
   require Logger
 
   @moduledoc """
+  Initialize the :addr ets table
+  provides add_entry/4 api
+  run background tasks
   """
+
+  @refresh_live_cache_ms Application.get_env(:geo_redi, :refresh_live_cache_ms) ||
+                           :timer.minutes(1)  # interval to rebuild the cache
+  @clean_orphan_addr_every_ms :timer.hours(1) # interval for orphan addr gc
+  @age_orphan_addr_ms :timer.hours(24)        # remove orphan addr older than that
 
   @doc """
   returns the fallback addr or fallback_not_found term as given in parameter
   """
-  @clean_addr_after_ms Application.get_env(:geo_redi, :clean_addr_after_ms) ||
-                             :timer.hours(24 * 10)
-
-  @refresh_live_cache_ms Application.get_env(:geo_redi, :refresh_live_cache_ms) ||
-                           :timer.minutes(1)
-  @clean_orphan_addr_every_ms :timer.hours(1)
-  @age_orphan_addr_ms :timer.hours(24)
-
   @spec add_entry(float(), float(), function(), binary() | term()) :: binary()
   def add_entry(lat, lng, fallback, fallback_not_found) do
     now = System.system_time()
