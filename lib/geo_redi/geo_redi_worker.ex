@@ -49,10 +49,10 @@ defmodule GeoRedi.Worker do
     restart_timer(@refresh_live_cache_ms, :refresh_live_cache)
     restart_timer(@clean_orphan_addr_every_ms, :clean_orphan_addr)
     Logger.info """
-    #{inspect(self())} init/1 with :  \
-    \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms} \
-    \n\t@clean_addr_after_ms #{@clean_addr_after_ms} \
-    \n\t@clean_orphan_addr_every_ms eve#{@clean_orphan_addr_every_ms}
+    #{__MODULE__} #{inspect(self())} init/1 with :  \
+    \n\t@refresh_live_cache_ms #{@refresh_live_cache_ms} (#{div(@refresh_live_cache_ms,1000)} s.)\
+    \n\t@clean_addr_after_ms #{@clean_addr_after_ms} (#{div(@clean_addr_after_ms,3600_000)} h.)\
+    \n\t@clean_orphan_addr_every_ms every #{@clean_orphan_addr_every_ms}  (#{div(@clean_orphan_addr_every_ms,3600_000)} h.)
     """
 
     {:ok, %{tree: nil}}
