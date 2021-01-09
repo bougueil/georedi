@@ -110,11 +110,7 @@ defmodule GeoRedi.Worker do
   def handle_info(:refresh_live_cache = msg, state) do
     restart_timer(@refresh_live_cache_ms, msg)
     now = System.system_time()
-
-    num_entries =
-      :ets.tab2list(:latlng)
-      |> Nif.new_tree()
-
+    num_entries = GeoRedi.rebuild_live_cache()
     :exometer.update([:duration_us, :build_cache], System.system_time() - now)
     Logger.info("#{msg} cache #{num_entries} entries")
 
@@ -151,5 +147,5 @@ defmodule GeoRedi.Worker do
     Process.send_after(self(), msg, time)
   end
 
-  defp ts_ms(), do: System.system_time(:milli_seconds)
+  defp ts_ms(), do: System.system_time(:millisecond)
 end

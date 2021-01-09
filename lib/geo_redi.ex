@@ -13,7 +13,7 @@ defmodule GeoRedi do
 
   Internally, if no address is found with an acceptable best_distance, see configurable parameter `:nearest_dist_max`, the `fallback` fun is called with latitude, longitude and returns either `fallback_not_found` or an address that GeoRedi adds it to the cache.
 
-  The cached addresses will be discarted after the configurable `:clean_ets_addr_after_ms` parameter, enabling some 'data refreshing' or limiting the cache from being too large.
+  The cached addresses will be discarted after the configurable `:clean_addr_after_ms` parameter, enabling some 'data refreshing' or limiting the cache from being too large.
 
 
   The cache lookup time is O(log n) thanks to the K-d tree.
@@ -24,16 +24,16 @@ defmodule GeoRedi do
   ## Usage
 
       iex> GeoRedi.get_addr(49.496146587425265, 0.12258659847596874, fn _,_ -> "undefined" end, "undefined")
-      {"66, Rue Lesueur, Danton, 76600, Le Havre, Le Havre, France", 160000, 20.0}
+      "undefined"
 
-  returns 160000 as the best_distance found and  20 microseconds to find the address.
+  returns "undefined", the default callback value
 
   ## Configuration
 
 
   - `:refresh_live_cache_ms` - update cache in ms, default is 1 minute, 
 
-  - `:clean_ets_addr_after_ms` - keep data in cache in ms, default is 14 days
+  - `:clean_addr_after_ms` - keep data in cache in ms, default is 14 days
 
   - `:nearest_dist_max` - default is 36000000 for GeoRedi to accept a nearest address less than 20-30m   
   if you want the double distance, use (4 * nearest_dist_max = 144000000)
@@ -57,7 +57,7 @@ defmodule GeoRedi do
 
 
       iex> GeoRedi.get_addr(49.496146587, 0.12258659, fn _,_ -> "undefined" end, "undefined")
-      "66, Rue Lesueur, Danton, 76600, Le Havre, Le Havre, France"
+      "undefined"
 
   returns the nearest_address.
 
@@ -90,6 +90,16 @@ defmodule GeoRedi do
   end
 
   def get_addr(_lat, _lng, _fallback, fallback_not_found), do: fallback_not_found
+
+
+  @doc """
+  Rebuild the kd tree
+  Returns the cache's number of entries
+  """
+  def rebuild_live_cache() do
+     :ets.tab2list(:latlng) |>  Nif.new_tree()
+  end
+
 
   @doc """
   returns some stats on the cache efficiency
