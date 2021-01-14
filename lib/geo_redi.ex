@@ -143,7 +143,7 @@ defmodule GeoRedi do
   compare addresses between cache and fallback
   """
   def diff_local_fallback(fallback, limit \\ 100) do
-    mismatches = :ets.tab2list :latlng |> Enum.take(limit)
+    mismatches = :ets.tab2list( :latlng) |> Enum.take(limit)
     |> Enum.reduce(0, fn {{lat, lng}, addr}, cnt ->
       addr_fb = fallback.(GeoRedi.unscale_31(lat), GeoRedi.unscale_31(lng))
       if addr != addr_fb do
