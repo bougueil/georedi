@@ -110,6 +110,9 @@ defmodule GeoRedi do
   @doc false
   def scale_31(angle), do: round(angle * @mult)
 
+  @doc false
+  def unscale_31(angle), do: angle / @mult
+
   # returns the {lat, lng} of an address
   # for debug purpose
   @doc false
@@ -135,4 +138,22 @@ defmodule GeoRedi do
     delta_deg = :math.sqrt(best_dist) / 11_930_464
     [delta_deg: delta_deg, delta_rad: :math.pi() * delta_deg / 180]
   end
+
+  @doc """
+  compare addresses between cache and fallback
+  """
+  def diff_local_fallback(fallback, limit \\ 100) do
+    mismatches = :ets.tab2list :latlng |> Enum.take(limit)
+    |> Enum.reduce(0, fn {{lat, lng}, addr}, cnt ->
+      addr_fb = fallback.(GeoRedi.unscale_31(lat), GeoRedi.unscale_31(lng))
+      if addr != addr_fb do
+	IO.puts "mismatch #{GeoRedi.unscale_31(lat)}, #{GeoRedi.unscale_31(lng)}: \n\t#{addr}\n\t#{addr_fb}"
+	cnt + 1
+      else
+	cnt
+      end
+    end)
+    IO.puts "#{mismatches} mismatches out of #{limit}"
+  end
+
 end
