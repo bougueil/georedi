@@ -6,6 +6,9 @@ defmodule GeoRedi.Application do
   use Application
   use GeoRedi.Constants
 
+  @next_gc_ms Application.get_env(:geo_redi, :next_gc_ms) ||
+    :timer.minutes(30)
+
   def start(_type, _args) do
     declare_exometer_durations()
     declare_exometer_counters()
@@ -17,7 +20,10 @@ defmodule GeoRedi.Application do
           {:redi, :start_link,
            [
              :latlng,
-             %{bucket_name: :latlng, entry_ttl_ms: @clean_addr_after_ms}
+             %{bucket_name: :latlng,
+	       entry_ttl_ms: @clean_addr_after_ms,
+	       next_gc_ms: @next_gc_ms
+	     }
            ]}
       },
       {GeoRedi.Worker, []}
