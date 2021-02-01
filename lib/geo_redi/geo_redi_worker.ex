@@ -12,7 +12,8 @@ defmodule GeoRedi.Worker do
   @refresh_live_cache_ms Application.get_env(:geo_redi, :refresh_live_cache_ms) ||
                            :timer.minutes(1)  # interval to rebuild the cache
   @clean_orphan_addr_every_ms :timer.hours(1) # interval for orphan addr gc
-  @age_orphan_addr_ms :timer.hours(24)        # remove orphan addr older than that
+  @age_orphan_addr_ms Application.get_env(:geo_redi, :age_orphan_addr_ms) ||
+    :timer.hours(24*2)        # remove orphan addr older than that
 
   @doc """
   returns the fallback addr or fallback_not_found term as given in parameter
