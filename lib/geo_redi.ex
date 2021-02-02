@@ -153,7 +153,7 @@ defmodule GeoRedi do
 	cnt
       end
     end)
-    IO.puts "#{mismatches} mismatches out of #{min(limit, :ets.info(:latlng, :size)}"
+    IO.puts "#{mismatches} mismatches out of #{min(limit, :ets.info(:latlng, :size))}"
   end
 
 end
