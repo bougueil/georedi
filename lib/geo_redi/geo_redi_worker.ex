@@ -9,10 +9,10 @@ defmodule GeoRedi.Worker do
   run background tasks
   """
 
-  @refresh_live_cache_ms Application.get_env(:geo_redi, :refresh_live_cache_ms) ||
+  @refresh_live_cache_ms Application.get_env(:georedi, :refresh_live_cache_ms) ||
                            :timer.minutes(1)  # interval to rebuild the cache
   @clean_orphan_addr_every_ms :timer.hours(1) # interval for orphan addr gc
-  @age_orphan_addr_ms Application.get_env(:geo_redi, :age_orphan_addr_ms) ||
+  @age_orphan_addr_ms Application.get_env(:georedi, :age_orphan_addr_ms) ||
     :timer.hours(24*2)        # remove orphan addr older than that
 
   @doc """

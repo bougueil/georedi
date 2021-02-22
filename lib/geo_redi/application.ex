@@ -6,7 +6,7 @@ defmodule GeoRedi.Application do
   use Application
   use GeoRedi.Constants
 
-  @next_gc_ms Application.get_env(:geo_redi, :next_gc_ms) ||
+  @next_gc_ms Application.get_env(:georedi, :next_gc_ms) ||
     :timer.minutes(30)
 
   def start(_type, _args) do

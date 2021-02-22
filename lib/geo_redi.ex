@@ -63,7 +63,7 @@ defmodule GeoRedi do
 
   """
 
-  @nearest_dist_max Application.get_env(:geo_redi, :nearest_dist_max) || 6000 * 6000
+  @nearest_dist_max Application.get_env(:georedi, :nearest_dist_max) || 6000 * 6000
 
   @spec get_addr(
           latitude :: float(),

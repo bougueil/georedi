@@ -6,7 +6,7 @@ defmodule GeoRedi.Constants do
   end
 
   def clean_addr_after_ms() do
-    Application.get_env(:geo_redi, :clean_addr_after_ms) ||
+    Application.get_env(:georedi, :clean_addr_after_ms) ||
       :timer.hours(24 * 10)
   end
 end
